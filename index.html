@@ -1,0 +1,251 @@
+<div class="calculator-container">  
+    <div class="calculator">  
+        <h2>Profit Calculator</h2>  
+        <div class="input-group">  
+            <label for="betSize">Single Bet Size (€):</label>  
+            <input type="number" id="betSize" placeholder="How much can you stake?" />  
+        </div>  
+        <div class="input-group">  
+            <input type="checkbox" id="reinvest" checked />  
+            <label for="reinvest">Reinvest Profits (Monthly)</label>  
+        </div>  
+        <button onclick="calculateReturns()">  
+            Calculate  
+            <span class="arrow">▼</span>  
+        </button>  
+        <div class="output-group">  
+            <p>Expected Profit:</p>  
+            <div class="output-columns">  
+                <div>  
+                    <label for="monthReturn">In 1 Month:</label>  
+                    <input type="text" id="monthReturn" readonly />  
+                </div>  
+                <div>  
+                    <label for="threeMonthsReturn">In 3 Months:</label>  
+                    <input type="text" id="threeMonthsReturn" readonly />  
+                </div>  
+                <div>  
+                    <label for="sixMonthsReturn">In 6 Months:</label>  
+                    <input type="text" id="sixMonthsReturn" readonly />  
+                </div>  
+                <div>  
+                    <label for="yearReturn">In 1 Year:</label>  
+                    <input type="text" id="yearReturn" readonly />  
+                </div>
+            </div>  
+        </div>  
+        <p class="disclaimer">  
+            *Based on <a href="https://baraglobal.blogabet.com/" target="_blank">Blogabet</a> that says we make 4% yield on each bet and stake 120 bets per month  
+        </p>  
+    </div>  
+</div>  
+
+<style>  
+    .calculator-container {  
+        display: flex;  
+        justify-content: center;  
+        align-items: center;  
+        height: 100vh;  
+    }  
+    .calculator {  
+        width: 400px;  
+        padding: 25px;  
+        border-radius: 25px;  
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  
+        background-color: #f9f9f9;  
+        font-family: Arial, sans-serif;  
+    }  
+    .calculator h2 {  
+        color: #004529;  
+    }  
+    .input-group {  
+        margin-bottom: 15px;  
+    }  
+    .input-group label,  
+    .input-group input {  
+        display: block;  
+        width: 100%;  
+    }  
+    .input-group input[type="number"],  
+    .output-group input[type="text"] {  
+        padding: 10px;  
+        border-radius: 10px;  
+        border: 1px solid #ccc;  
+        box-sizing: border-box;  
+    }  
+    .input-group input[type="checkbox"] {  
+        display: inline-block;  
+        width: auto;  
+        margin-right: 10px;  
+    }  
+    .reinvest-label {  
+        display: inline-block;  
+        vertical-align: middle;  
+        font-size: 14px;  
+        line-height: 1.2em;  
+        color: #333;  
+    }  
+    button {  
+        background-color: #028750;  
+        color: white;  
+        padding: 12px;  
+        border: none;  
+        border-radius: 15px;  
+        cursor: pointer;  
+        text-align: center;  
+        width: 100%;  
+        font-size: 16px;  
+        display: flex;  
+        justify-content: center;  
+        align-items: center;  
+        gap: 5px;  
+        transition: all 0.3s ease;  
+    }  
+    button:hover {  
+        background-color: white;  
+        color: black;  
+        border: 2px solid #028750;  
+    }  
+    .arrow {  
+        font-size: 18px;  
+    }  
+    .output-group p {  
+        font-weight: bold;  
+        margin-bottom: 10px;  
+        color: #028750;  
+    }  
+    .output-columns {  
+        display: flex;  
+        flex-wrap: wrap;  
+        gap: 15px;  
+    }  
+    .output-columns div {  
+        flex: 1;  
+        min-width: 120px;  
+    }  
+    .output-columns label {  
+        display: block;  
+        margin-bottom: 5px;  
+        font-size: 14px;  
+        color: #028750;  
+    }  
+    .output-columns input {  
+        padding: 8px;  
+        border-radius: 10px;  
+        border: 1px solid #ccc;  
+        width: 100%;  
+    }  
+    .disclaimer {  
+        font-size: 10px;  
+        margin-top: 15px;  
+        color: #333;  
+    }  
+    .disclaimer a {  
+        color: #028750;  
+        text-decoration: none;  
+    }  
+    .disclaimer a:hover {  
+        text-decoration: underline;  
+    }  
+</style>  
+
+<script>  
+    const currencySymbols = {  
+        GBP: '£',
+        CHF: 'CHF',
+        SEK: 'kr',
+        NOK: 'kr',
+        DKK: 'kr',
+        ISK: 'kr',
+        PLN: 'zł',
+        HUF: 'Ft',
+        CZK: 'Kč',
+        BGN: 'лв',
+        RON: 'lei',
+        RSD: 'дин',
+        MKD: 'ден',
+        BAM: 'KM',
+        ALL: 'L',
+        MDL: 'L',
+        USD: '$',
+        CAD: '$',
+        TRY: '₺',
+        UAH: '₴',
+        GEL: '₾',
+        EUR: '€'
+    };  
+
+    let currencySymbol = currencySymbols['EUR'];
+
+    function replaceCurrencySymbolInContainer(container, symbol) {  
+        const elements = container.querySelectorAll('label, input');  
+        elements.forEach(element => {  
+            if (element.tagName.toLowerCase() === 'label') {  
+                element.innerHTML = element.innerHTML.replace(/€/g, symbol);  
+            } else if (element.tagName.toLowerCase() === 'input') {  
+                element.value = element.value.replace(/€/g, symbol);  
+            }  
+        });  
+    }  
+
+    function detectCurrency() {  
+        fetch('https://ipapi.co/currency/')
+            .then(response => response.text())  
+            .then(currencyCode => {  
+                currencySymbol = currencySymbols[currencyCode] || currencySymbols['EUR'];  
+                const calculatorContainer = document.querySelector('.calculator-container');  
+                replaceCurrencySymbolInContainer(calculatorContainer, currencySymbol);  
+            })  
+            .catch(() => {  
+                currencySymbol = currencySymbols['EUR'];
+                const calculatorContainer = document.querySelector('.calculator-container');  
+                replaceCurrencySymbolInContainer(calculatorContainer, currencySymbol);  
+            });  
+    }  
+
+    window.onload = detectCurrency;  
+
+    function calculateReturns() {  
+        let betSize = parseFloat(document.getElementById('betSize').value);  
+        if (isNaN(betSize) || betSize < 1 || betSize > 100000) {  
+            alert("Please enter a bet size between 1 and 100,000.");  
+            return;
+        }  
+
+        let reinvest = document.getElementById('reinvest').checked;  
+        const betsPerMonth = 120;  // Updated to 120 bets per month
+        const yieldPerBet = 0.04;  // Updated to 4% yield
+
+        function calculatePeriodReturn(months, reinvestMonthly = false) {  
+            let totalProfit = 0;  
+            let currentBetSize = betSize;  
+
+            for (let month = 1; month <= months; month++) {  
+                let monthlyProfit = currentBetSize * yieldPerBet * betsPerMonth;  
+                totalProfit += monthlyProfit;  
+
+                if (reinvestMonthly && month < months) {  
+                    currentBetSize += monthlyProfit / betsPerMonth;  
+                }  
+            }  
+
+            return totalProfit;  
+        }  
+
+        function formatNumber(num) {  
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });  
+        }  
+
+        // Calculate returns (removed week and 2 years calculations)
+        let monthReturn = calculatePeriodReturn(1, false);  
+        let threeMonthsReturn = calculatePeriodReturn(3, reinvest);  
+        let sixMonthsReturn = calculatePeriodReturn(6, reinvest);  
+        let yearReturn = calculatePeriodReturn(12, reinvest);  
+
+        // Display the formatted return values
+        document.getElementById('monthReturn').value = `${currencySymbol}${formatNumber(monthReturn)}`;  
+        document.getElementById('threeMonthsReturn').value = `${currencySymbol}${formatNumber(threeMonthsReturn)}`;  
+        document.getElementById('sixMonthsReturn').value = `${currencySymbol}${formatNumber(sixMonthsReturn)}`;  
+        document.getElementById('yearReturn').value = `${currencySymbol}${formatNumber(yearReturn)}`;  
+    }  
+</script>
